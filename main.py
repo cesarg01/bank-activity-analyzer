@@ -19,11 +19,9 @@ def search_dataframe(data, sub):
 
     return data_match
 
+##################################### Main #####################################
 
 
-# Read in the csv file
-#df = pd.read_csv('ChaseDebit_Activity_2019.csv')
-#print(df[['Balance','Description']])
 
 # Change the date type for the Posting Date from an object to datetime64
 #df[['Posting Date']] = df[['Posting Date']].apply(pd.to_datetime)
@@ -33,7 +31,15 @@ def search_dataframe(data, sub):
 # Get the datatypes of each column
 #print(df.dtypes)
 
-# Convert Date
+while True:
+    user_option = int(input('Press 1 for debit card activity, press 2 for credit card activity, or press 3 to get activity for both debit and credit. '))
+    if(user_option < 1 and user_option > 3):
+        print('Option is incorrect. Please try again')
+    else:
+        print('User choose', user_option)
+        break
+
+# Read file and convert Date
 chase_activity = pd.read_csv('ChaseDebit_Activity_2019.csv', index_col=0, parse_dates=True)
 chase_activity[['Posting Date']] = chase_activity[['Posting Date']].apply(pd.to_datetime)
 chase_activity = chase_activity.set_index('Posting Date')
@@ -80,10 +86,10 @@ print('You have spent a total of ' , coffee_match['Amount'].sum() , 'in coffee.'
 
 # Add up all my work checks that get put into my account
 income_dataframe = chase_activity
-total_income = income_dataframe[income_dataframe['Description'].str.contains('WORK')]
+total_income = income_dataframe[income_dataframe['Description'].str.contains('COSTCO WHOLESALE COWHOLES1')]
 print('Total income ', total_income['Amount'].sum())
 # Get the total spendings by not including my work checks
-total_spendings = income_dataframe[~income_dataframe['Description'].str.contains('WORK')]
+total_spendings = income_dataframe[~income_dataframe['Description'].str.contains('COSTCO WHOLESALE COWHOLES1')]
 print('Total spending ', total_spendings['Amount'].sum())
 
 
@@ -110,30 +116,19 @@ chase_credit_activity['Weekday Name'] = chase_credit_activity.index.weekday_name
 credit_coffee_dataframe = chase_credit_activity
 
 # Substrings to be searched
-sub = ['COFFEE', 'CAT CLOUD COMPANION']
+coffee_sub = ['COFFEE', 'CAT CLOUD COMPANION']
+credit_coffee_match = search_dataframe(credit_coffee_dataframe, coffee_sub)
+print('Total coffee spending with credit card is', credit_coffee_match['Amount'].sum())
+print(credit_coffee_match.loc[credit_coffee_match['Amount'].idxmin()])
 
-coffee_match = pd.DataFrame()
-# Find all the instances were the description has coffee in it
-for i in sub:
-    if(coffee_dataframe['Description'].str.contains(i).any()):
-        temp_match = credit_coffee_dataframe[credit_coffee_dataframe['Description'].str.contains(i)]
-        coffee_match = pd.concat([coffee_match, temp_match])
-    else:
-        print('NO RESULTS FOUND.')
-        break
-
-    #print(match)
-#print(match)
-print('Total coffee spending with credit card is', coffee_match['Amount'].sum())
-
-credit_gas_dataframe = chase_credit_activity
-
+credit_gas_dataframe = chase_credit_activity 
 # Get all the instances where Gas is the name of the category.
 gas_match = credit_gas_dataframe[credit_gas_dataframe['Category'].str.contains('Gas', na=False)]
 print('Total gas spent on credit card is', gas_match['Amount'].sum())
 
 # Get the most I have wasted on gas.
 print(gas_match['Amount'].min())
+# Give a detailed version of the most amount of gas wasted.
 print(gas_match.loc[gas_match['Amount'].idxmin()])
 
 
